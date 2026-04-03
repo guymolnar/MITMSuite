@@ -74,6 +74,9 @@ class MITMEngine:
         target_ips = " or ".join(f"host {t['ip']}" for t in self.targets)
         filter_str = f"not arp and (host {self.gateway_ip} or {target_ips})"
 
+        for module in self.modules:
+            module.start()
+
         self._forwarder.start(filter_str)
         self._spoof_thread = threading.Thread(target=self._arp.spoof_loop)
         self._spoof_thread.start()
@@ -87,6 +90,10 @@ class MITMEngine:
         self._spoof_thread.join()
         self._forwarder.stop()
         self._arp.restore_all()
+
+        for module in self.modules:
+            module.stop()
+
         self.spoofing = False
         print("Stopped.")
 
@@ -97,5 +104,8 @@ class MITMEngine:
         if len(args) != 1 or args[0] not in available:
             print("Available modules: " + ", ".join(available.keys()))
             return
+        module = available[args[0]]()
+        if self.spoofing:
+            module.start()
         self.modules.append(available[args[0]]())
         print(f"Module '{args[0]}' added.")
