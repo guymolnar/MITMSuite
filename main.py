@@ -1,4 +1,4 @@
-from engine import MITMEngine
+from engine.core import MITMEngine
 
 def main():
     engine = MITMEngine()
@@ -10,6 +10,7 @@ def main():
         "targets": engine.show_targets,
         "spoof": engine.start_spoof,
         "stop": engine.stop_spoof,
+        "add_module": engine.add_module
     }
 
     print("Welcome to MITMSuite")
