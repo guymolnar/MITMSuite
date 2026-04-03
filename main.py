@@ -10,13 +10,14 @@ commands = {
     "scan" : list_network,
     "set_target" : set_target,
     "show_targets" : show_targets,
-    "arp_spoof" : arp_spoof
+    "start_spoof" : arp_spoof,
+    "stop_spoof" : stop_arp_spoofing
 }
 
 def main():
     config.gateway_ip = conf.route.route("0.0.0.0")[2]
     print(config.gateway_ip)
-    config.gateway_mac = get_mac(gateway_ip)
+    config.gateway_mac = get_mac(config.gateway_ip)
     victim_ip = "192.168.10.133"
     victim_mac = get_mac(victim_ip)
     config.my_mac = get_if_hwaddr(conf.iface)
@@ -32,7 +33,10 @@ def main():
             if command in commands:
                 commands[command](args)
     except KeyboardInterrupt:
-        restore_arp(victim_mac, gateway_mac, victim_ip, gateway_ip)
+        pass
+    finally:
+        for target in config.targets:
+            restore_arp(target["mac"], config.gateway_mac, target["ip"], config.gateway_ip)
 
 if __name__ == "__main__":
     main()

