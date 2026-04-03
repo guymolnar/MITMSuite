@@ -29,6 +29,7 @@ class ARPSpoofer:
                                                           psrc=self.gateway_ip, hwsrc=self.gateway_mac)
         packet_to_gateway = Ether(dst=self.gateway_mac) / ARP(op=2, pdst=self.gateway_ip, hwdst=self.gateway_mac,
                                                               psrc=target["ip"], hwsrc=target["mac"])
+        print("Restoring arp.....")
         sendp(packet_to_victim, verbose=False)
         sendp(packet_to_gateway, verbose=False)
 

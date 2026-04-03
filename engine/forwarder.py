@@ -46,9 +46,10 @@ class Forwarder:
         sendp(pkt, verbose=False)
 
     def start(self, filter_str):
+        print("Enabling packet forwarding.....")
         self.sniffer = AsyncSniffer(filter=filter_str, prn=self._process, store=0)
         self.sniffer.start()
 
     def stop(self):
-        if self.sniffer:
+        if self.sniffer and self.sniffer.running:
             self.sniffer.stop()

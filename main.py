@@ -6,11 +6,12 @@ def main():
 
     commands = {
         "scan": engine.scan,
-        "set_target": engine.set_target,
+        "add_target": engine.add_target,
         "targets": engine.show_targets,
         "spoof": engine.start_spoof,
         "stop": engine.stop_spoof,
-        "add_module": engine.add_module
+        "add_module": engine.add_module,
+        "dns_add": engine.dns_add
     }
 
     print("Welcome to MITMSuite")
