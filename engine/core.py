@@ -9,6 +9,15 @@ from engine.modules.dns import DNSModule
 
 class MITMEngine:
     def __init__(self):
+        self.commands = {
+        "scan": "Scan network.",
+        "add_target": "Add a device as a target.",
+        "targets": "Show current targets.",
+        "spoof": "Start arp spoofing",
+        "stop": "Stop arp spoofing.",
+        "add_module": "Add a module.",
+        "dns_add": "Add a domain to spoof."
+        }
         self.targets = []
         self.network_devices = []
         self.gateway_ip = None
@@ -38,6 +47,10 @@ class MITMEngine:
         if answered:
             return answered[0][1].hwsrc
         return None
+
+    def help(self, args=None):
+        for command in self.commands:
+            print(f"{command} : {self.commands[command]}")
 
     def scan(self, args=None):
         self.network_devices.clear()

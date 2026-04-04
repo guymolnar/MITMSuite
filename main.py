@@ -5,6 +5,7 @@ def main():
     engine.initialize()
 
     commands = {
+        "help" : engine.help,
         "scan": engine.scan,
         "add_target": engine.add_target,
         "targets": engine.show_targets,
@@ -15,6 +16,7 @@ def main():
     }
 
     print("Welcome to MITMSuite")
+    print('Enter "help" for available commands.')
     try:
         while True:
             command, *args = input(">> ").split()
