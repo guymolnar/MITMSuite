@@ -1,4 +1,3 @@
-from scapy.all import *
 from scapy.layers.l2 import *
 import threading
 import ipaddress
@@ -11,6 +10,7 @@ class MITMEngine:
     def __init__(self):
         self.commands = {
         "scan": "Scan network.",
+        "show devices": "Show scanned network devices.",
         "add_target": "Add a device as a target.",
         "targets": "Show current targets.",
         "spoof": "Start arp spoofing",
@@ -56,9 +56,14 @@ class MITMEngine:
         self.network_devices.clear()
         ip_range = ".".join(self.gateway_ip.split(".")[:3]) + ".0/24"
         packet = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_range)
-        result = srp(packet, timeout=5, retry=2, verbose=0)[0]
+        result = srp(packet, timeout=3, retry=2, verbose=0)[0]
         for sent, received in result:
             self.network_devices.append({"ip": received.psrc, "mac": received.hwsrc})
+        for index, device in enumerate(self.network_devices):
+            marker = "[V]" if device in self.targets else "   "
+            print(f"{index}. {marker} {device['ip']} : {device['mac']}")
+
+    def show_devices(self, args=None):
         for index, device in enumerate(self.network_devices):
             marker = "[V]" if device in self.targets else "   "
             print(f"{index}. {marker} {device['ip']} : {device['mac']}")

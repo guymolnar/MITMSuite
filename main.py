@@ -7,6 +7,7 @@ def main():
     commands = {
         "help" : engine.help,
         "scan": engine.scan,
+        "show_devices": engine.show_devices,
         "add_target": engine.add_target,
         "targets": engine.show_targets,
         "spoof": engine.start_spoof,
