@@ -13,7 +13,8 @@ def main():
         "spoof": engine.start_spoof,
         "stop": engine.stop_spoof,
         "add_module": engine.add_module,
-        "dns_add": engine.dns_add
+        "dns_add": engine.dns_add,
+        "proxy_add" : engine.proxy_add
     }
 
     print("Welcome to MITMSuite")
