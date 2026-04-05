@@ -7,12 +7,14 @@ def main():
     commands = {
         "help" : engine.help,
         "scan": engine.scan,
+        "show_devices": engine.show_devices,
         "add_target": engine.add_target,
         "targets": engine.show_targets,
         "spoof": engine.start_spoof,
         "stop": engine.stop_spoof,
         "add_module": engine.add_module,
-        "dns_add": engine.dns_add
+        "dns_add": engine.dns_add,
+        "proxy_add" : engine.proxy_add
     }
 
     print("Welcome to MITMSuite")
