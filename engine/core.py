@@ -5,6 +5,8 @@ from engine.arp import ARPSpoofer
 from engine.forwarder import Forwarder
 from engine.modules.logger import LoggerModule
 from engine.modules.dns import DNSModule
+from engine.modules.proxy import ProxyModule
+
 
 class MITMEngine:
     def __init__(self):
@@ -32,7 +34,7 @@ class MITMEngine:
 
     def initialize(self):
         self.gateway_ip = conf.route.route("0.0.0.0")[2]
-        self.gateway_mac = self.get_mac(self.gateway_ip)
+        self.gateway_mac = MITMEngine.get_mac(self.gateway_ip)
         self.my_mac = get_if_hwaddr(conf.iface)
         if not self.gateway_ip:
             raise Exception("Failed to resolve gateway IP")
@@ -41,9 +43,11 @@ class MITMEngine:
         if not self.my_mac:
             raise Exception("Failed to resolve machine's MAC")
 
-    def get_mac(self, ip):
+    @staticmethod
+    def get_mac(ip):
         packet = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip)
-        answered, _ = srp(packet, timeout=3, verbose=0)
+        print(f"Interface: {conf.iface}")
+        answered, _ = srp(packet, timeout=5, verbose=0, iface=conf.iface)
         if answered:
             return answered[0][1].hwsrc
         return None
@@ -121,11 +125,15 @@ class MITMEngine:
         available = {
             "logger": LoggerModule,
             "dns": DNSModule,
+            "proxy": ProxyModule
         }
         if len(args) != 1 or args[0] not in available:
             print("Available modules: " + ", ".join(available.keys()))
             return
         module = available[args[0]]()
+        if any(isinstance(m, available[args[0]]) for m in self.modules):
+            print("Module already running.")
+            return
         if self.spoofing:
             module.start()
         self.modules.append(module)
@@ -146,3 +154,27 @@ class MITMEngine:
         except ValueError:
             print("Invalid IP address!")
             return
+
+    def proxy_add(self, args):
+        if len(args) < 3:
+            print("Usage: proxy_add <host> <path> key=value ...")
+            return
+
+        host, path,  = args[:2]
+        pairs = args[2:]
+
+        replace = {}
+        for pair in pairs:
+            if "=" not in pair:
+                print(f"Invalid pair: {pair}")
+                return
+            k, v = pair.split("=", 1)
+            replace[k] = v
+
+        for module in self.modules:
+            if isinstance(module, ProxyModule):
+                module.add_rule(host, path, replace)
+                print("Proxy rule added.")
+                return
+
+        print("Proxy module not loaded.")
