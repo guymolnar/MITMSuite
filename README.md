@@ -1,17 +1,65 @@
 ![MITMSuite Banner](assets/banner.png)
 
-![MITMSuite Demo](assets/example.png)
+# MITMSuite
+
+A Python toolkit for understanding man-in-the-middle attacks — by building one.
+
+---
 
 ## Overview
 
-MITMSuite is a Python-based man-in-the-middle attack toolkit with a terminal REPL interface, built for understanding network security hands-on.
+MITMSuite implements the full MITM flow end-to-end:
+
+- ARP poisoning  
+- Transparent packet forwarding  
+- Real-time traffic manipulation  
+
+The goal:
+
+> see what actually happens on the wire
+
+---
+
+## Core Model
+
+```
+Learn → Lie → Relay
+```
+
+- **Learn** — discover devices and ARP mappings  
+- **Lie** — poison ARP tables using forged replies  
+- **Relay** — intercept, mutate, and forward packets  
+
+---
+
+## Architecture
+
+```
+[ CLI ] → [ Engine ]
+              ├── ARP Spoofer
+              ├── Forwarder
+              └── Modules Pipeline
+                      ├── DNS
+                      ├── Proxy
+                      └── Logger
+```
+
+Each packet:
+
+```
+sniff → process → forward
+```
+
+---
 
 ## Requirements
 
-- Python 3.x
-- Scapy
-- Npcap (Windows) / libpcap (Linux)
-- Run as administrator/root
+- Python 3.x  
+- Scapy  
+- Npcap (Windows) / libpcap (Linux)  
+- Administrator / root privileges  
+
+---
 
 ## Installation
 
@@ -21,16 +69,20 @@ cd MITMSuite
 pip install scapy
 ```
 
+---
+
 ## Usage
 
 ```bash
 sudo python main.py
 ```
 
+---
+
 ## Commands
 
 | Command | Description |
-|---|---|
+|--------|------------|
 | `scan` | Scan the network for devices |
 | `add_target <index>` | Set a target by index |
 | `targets` | Show current targets |
@@ -39,14 +91,43 @@ sudo python main.py
 | `spoof` | Start ARP spoofing |
 | `stop` | Stop spoofing and restore ARP tables |
 
+---
+
+## Demo
+
+![MITMSuite Demo](assets/example.png)
+
+---
+
 ## Modules
 
-- **logger** — Logs all intercepted packets to a timestamped file
-- **dns** — Intercepts and spoofs DNS queries
-- **proxy** — Inspects HTTP traffic and POST parameters
+- **logger** — logs intercepted packets to a file  
+- **dns** — spoofs DNS responses (race-based)  
+- **proxy** — modifies HTTP POST data in transit  
+
+---
+
+## Limitations
+
+- HTTPS prevents content rewriting  
+- ARP inspection defeats spoofing  
+- DNS spoofing depends on timing  
+- Noisy on monitored networks  
+
+---
 
 ## Stack
 
-- Python
-- Scapy
-- CLI
+- Python  
+- Scapy  
+- CLI  
+
+---
+
+## Takeaway
+
+Most network protocols assume:
+
+> whoever answers is telling the truth
+
+MITMSuite shows what happens when that assumption breaks.
